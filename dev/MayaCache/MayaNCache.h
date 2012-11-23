@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "..\Other Include\Boolean.h"
+#include <Boolean.h>
 
 
 // generic swap macro managing "endianess"
@@ -174,12 +174,9 @@ void DLL_EXPORT mayaCache();
 
 void DLL_EXPORT closeMayaNCacheFile();
 
+
 unsigned int DLL_EXPORT getDuration();
-
-void DLL_EXPORT setNParticlesNumber(int nParticles);
-
 int DLL_EXPORT getStartFrame();
-
 int DLL_EXPORT getFrameIncrement();
 
 
