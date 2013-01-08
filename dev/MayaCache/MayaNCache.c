@@ -478,9 +478,5 @@ void deleteFile()
 }
 
 unsigned int DLL_EXPORT getDuration(){return info.duration;}
-
 int DLL_EXPORT getStartFrame(){return info.startFrame;}
-
 int DLL_EXPORT getFrameIncrement(){return info.frameIncrement;}
-
-void DLL_EXPORT setNParticlesNumber(int nParticles){info.numberOfElements=nParticles;}

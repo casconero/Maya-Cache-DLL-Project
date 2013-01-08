@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "../MayaCache/MayaNCache.h"
+#include <MayaNCache.h>
 
 
 //example: how to use the MayaNCache library
@@ -56,20 +56,9 @@ int main()
 	// simulation data
 	delta=(float)((360.0/getDuration()));
 
-	// for the entire simulation's length the number of particles never changes
-	color=(float*)malloc(3 * numberOfElements * sizeof(float));
-	position=(float*)malloc(3 * numberOfElements * sizeof(float));
-	velocity=(float*)malloc(3 * numberOfElements * sizeof(float));
-	id=(double*)malloc( numberOfElements * sizeof(double));
-	count=numberOfElements;
-	birthtime = (double*)calloc(numberOfElements, sizeof(double));
-	lifespanPP = (double*)calloc(3*numberOfElements, sizeof(double));
-	finalLifespanPP = (double*)calloc(3*numberOfElements, sizeof(double));
+	// for the entire simulation's length
 	for(j=getStartFrame();j<=getStartFrame()+getDuration();j+=getFrameIncrement())
 	{
-		// initializing number of particles for each frame 
-		/*
-		setNParticlesNumber(numberOfElements);
 		color=(float*)malloc(3 * numberOfElements * sizeof(float));
 		position=(float*)malloc(3 * numberOfElements * sizeof(float));
 		velocity=(float*)malloc(3 * numberOfElements * sizeof(float));
@@ -78,7 +67,6 @@ int main()
 		birthtime = (double*)calloc(numberOfElements, sizeof(double));
 		lifespanPP = (double*)calloc(3*numberOfElements, sizeof(double));
 		finalLifespanPP = (double*)calloc(3*numberOfElements, sizeof(double));
-		*/
 
 		// for each particle in the particle system 
 		// compute the position and save the datas
@@ -124,15 +112,8 @@ int main()
 
 		// chaching simulation
 		mayaCache();
-		//clean memory
-		memset(id, '\0', sizeof(id));
-		memset(color, '\0', sizeof(color));
-		memset(position, '\0', sizeof(position));
-		memset(velocity, '\0', sizeof(velocity));
-		memset(birthtime, '\0', sizeof(birthtime));
-		memset(lifespanPP, '\0', sizeof(lifespanPP));
-		memset(finalLifespanPP, '\0', sizeof(finalLifespanPP));
-		/* free resources
+
+		// free resources
 		if(id!=NULL)
 			free(id);
 		if(position!=NULL)
@@ -144,21 +125,9 @@ int main()
 		if(lifespanPP!=NULL)
 			free(lifespanPP);
 		if(finalLifespanPP!=NULL)
-			free(finalLifespanPP);*/
+			free(finalLifespanPP);
 	}
-	// free resources
-	if(id!=NULL)
-		free(id);
-	if(position!=NULL)
-		free(position);
-	if(velocity!=NULL)
-		free(velocity);
-	if(birthtime!=NULL)
-		free(birthtime);
-	if(lifespanPP!=NULL)
-		free(lifespanPP);
-	if(finalLifespanPP!=NULL)
-		free(finalLifespanPP);
+
 	// close the maya ncache file and exit
 	closeMayaNCacheFile();
 	printf("Simulation terminated \nPress any key to exit");
