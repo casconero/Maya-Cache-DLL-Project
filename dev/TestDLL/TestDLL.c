@@ -4,7 +4,6 @@
 #include <math.h>
 #include <MayaNCache.h>
 
-
 //example: how to use the MayaNCache library
 int main()
 {
@@ -40,9 +39,11 @@ int main()
 	extras[2]="100cells";							// owner
 	extras[3]="NCache Info for nParticleShape1";	// 
 
+
 	// Initializing channels options, simulation parameters and saving method type
-	cachingMethod=ONEFILEPERFRAME; //ONEFILE; 
-	init("nParticleShape1","c://temp//NPARTICLESHAPE1",cachingMethod,numberOfElements,fps,start,end,extras,nExtras);
+	cachingMethod=ONEFILEPERFRAME; //ONEFILE;	//
+
+	init("nParticleShape1","d://temp//multiFILE",cachingMethod,0,numberOfElements,fps,start,end,extras,nExtras);
 
 	enableChannel(IDCHANNEL, ENABLED);
 	enableChannel(COUNTCHANNEL, ENABLED);
@@ -53,6 +54,8 @@ int main()
 	enableChannel(VELOCITYCHANNEL, ENABLED);
 	enableChannel(RGBPPCHANNEL, ENABLED);
 
+
+	enableUserDefinedChannel("Pippo", DBLA, ENABLED);
 	// simulation data
 	delta=(float)((360.0/getDuration()));
 

@@ -2,7 +2,9 @@
 
 #include "MayaNCache.h"
 #include "XmlWriter.h"
+#include "CacheTranscoding.h"
 #include <string.h>
+#include "FileUtility.h"
 
  GENERICSWAP(double,unsigned long long)		// swap for double variables: swapdouble(unsigned long long d)
  GENERICSWAP(float,unsigned int)			// swap for float variables: swapfloat(unsigned int d)
@@ -15,9 +17,47 @@
  void writeMayaNCacheChannel(CHANNELTYPE cType);
  void writeMayaNCacheBlock();
 
+ //BOOL SingleFileToMultiFileConverter(char *sourceFile, char * destinationFile)
+ //{
+	// return _SingleFileToMultiFileConverter(sourceFile, destinationFile);
+	// 
+ //}
+
+ //BOOL MultiFileToSingleFileConverter(char *sourceFile, char * destinationFile)
+ //{
+	// return _MultiFileToSingleFileConverter(sourceFile, destinationFile);
+ //};
+
+ void enableUserDefinedChannel(char* channelName, CHANNELVARIABLETYPE channelType, ENABLEDISABLED ea)
+ {
+
+	 mayaChannels[CACHENUMBEROFCHANNELS+dc].enabled=ea;
+	 mayaChannels[CACHENUMBEROFCHANNELS+dc].defineByUser=TRUE;
+	 mayaChannels[CACHENUMBEROFCHANNELS+dc].elementsD=NULL;
+	 mayaChannels[CACHENUMBEROFCHANNELS+dc].elementsF=NULL;
+	 mayaChannels[CACHENUMBEROFCHANNELS+dc].numberOfElements=info.numberOfElements;
+	 
+	 // assigning name
+	 makeName(CACHENUMBEROFCHANNELS+dc, &channelName);
+
+	 if (channelType==DBLA)
+	 {
+		 mayaChannels[CACHENUMBEROFCHANNELS+dc].type = DBLA;
+		 mayaChannels[CACHENUMBEROFCHANNELS+dc].numberOfComponents = 1;
+	 }
+	 else
+	 {
+		 mayaChannels[CACHENUMBEROFCHANNELS+dc].type = FVCA;
+		 mayaChannels[CACHENUMBEROFCHANNELS+dc].numberOfComponents = 3;
+	 }
+	 
+	 dc++;
+ }
+
  void enableChannel(CHANNELTYPE channelActive, ENABLEDISABLED ea)
  {
 	 mayaChannels[channelActive].enabled=ea;
+	 mayaChannels[channelActive].defineByUser=FALSE;
 	 mayaChannels[channelActive].elementsD=NULL;
 	 mayaChannels[channelActive].elementsF=NULL;
 	 if (ea==ENABLED)
@@ -84,12 +124,28 @@
 	}
  }
  
- void init(char *particleSysName,char *fileName, CACHEFORMAT cacheFormat,int numberOfElements, unsigned int fps, double start, double end,char *extra[], int nE)
+ void init(char *particleSysName,char *fileName, CACHEFORMAT cacheFormat,int nExtraChannels, int numberOfElements, unsigned int fps, double start, double end,char *extra[], int nE)
  {
+	char *filePath;
+	char *fileName2;
+	char *fileExtension;
+
+
+
 	char *mcName, *xmlName;
 	int i=0;
 	int padding=1,temp=0;
 	temp=(int)(end-start)*fps;
+
+	dc=0;
+	mayaChannels=(Channel*)malloc(sizeof(Channel)*(CACHENUMBEROFCHANNELS+nExtraChannels));
+
+	filePath=NULL;
+	fileName2=NULL;
+	fileExtension=NULL;
+	
+//	_SingleFileToMultiFileConverter("d:\\temp\\2particlesSINGLEFILE.xml", "d:\\temp\\esempio.xml");
+	_MultiFileToSingleFileConverter("d:\\temp\\multiFILE.xml", "d:\\temp\\destinationFile.xml");
 
 	info.extras=(char**)malloc(nE*sizeof(char*));
 	info.nExtras=nE;
@@ -100,6 +156,7 @@
 	}
 
 	info.numberOfChannels=0;
+	info.nUserDefinedChannel=nExtraChannels;
 	info.particleSysName=particleSysName;
 	info.numberOfElements=numberOfElements;
 
@@ -117,9 +174,9 @@
 	}
 
 	// adding extension ".mc"
-	mcName = (char*)malloc(sizeof(char)*(strlen(fileName)+padding+4));
+	mcName = (char*)malloc(sizeof(char)*(strlen(fileName)+padding+MAYACACHEEXTENSIONLENGTH+1));
 	strcpy(mcName, fileName);
-	strcat(mcName, ".mc");
+	strcat(mcName, MAYACACHEEXTENSION);
 	info.mcFileName=mcName;
 	
 	mayaCacheFileName=(char*)malloc(sizeof(char)*(strlen(fileName)));
@@ -128,9 +185,9 @@
 	printf("Enabling %s in write mode\n",info.mcFileName);
 	
 	// adding extension ".xml"
-	xmlName = (char*)malloc(sizeof(char)*(strlen(fileName)+5));
+	xmlName = (char*)malloc(sizeof(char)*(strlen(fileName)+XMLEXTENSIONLENGTH+1));
 	strcpy(xmlName, fileName);
-	strcat(xmlName, ".xml");
+	strcat(xmlName, XMLEXTENSION);
 	info.xmlFileName=xmlName;
 		
 	printf("Enabling %s in write mode \n",info.xmlFileName);
@@ -362,11 +419,12 @@ void mayaCache()
 		
 		// adding extension ".mc"
 		// "Frame"---->5
-		mcName = (char*)malloc(sizeof(char)*(strlen(mayaCacheFileName)+sflenght+4+5));
+		// ADDING eos "\0"
+		mcName = (char*)malloc(sizeof(char)*(strlen(mayaCacheFileName)+sflenght+MAYACACHEEXTENSIONLENGTH+FRAMELENGTH +1));
 		strcpy(mcName, mayaCacheFileName);
 		strcat(mcName, "Frame");
 		strcat(mcName, subfix);
-		strcat(mcName, ".mc");
+		strcat(mcName, MAYACACHEEXTENSION);
 		if (info.mcFileName!=NULL)
 			free(info.mcFileName);
 		info.mcFileName=mcName;
@@ -388,6 +446,9 @@ void mayaCache()
 void makeName(CHANNELTYPE type, char **channelName)
 {
 	int dim;
+	int additionalDigit=0;
+	int digit=0;
+
 	char *underscore={"_"};
 	switch(type)
 	{
@@ -439,16 +500,23 @@ void makeName(CHANNELTYPE type, char **channelName)
 		case RADIUSPPCHANNEL:
 			dim=10;
 			break;
-
 		default:
-			printf("Option not allowed yet.\n Exit from program.\n Press a key to exit");
-			getchar();
+			// user defined channel
+			/* USERDEFINEDCHANNEL */
+			dim=13;
 			break;
 	}
 	*channelName=(char*)calloc(sizeof(info.particleSysName)+dim, sizeof(char));
 	strcpy(channelName[0], info.particleSysName);
 	strcat(channelName[0], underscore);
-	strcat(channelName[0], names[type]);
+	if (type!=USERDEFINEDCHANNEL)
+		strcat(channelName[0], names[type]);
+	else
+	{
+		// user defined channel
+		strcat(channelName[0], "USERDEFINED");
+	}
+	
 }
 
 
@@ -476,7 +544,15 @@ void deleteFile()
 	if(fileExists(info.xmlFileName))
 		remove(info.xmlFileName);
 }
+/*****************************************************************************************************************************************************************/
 
+/*****************************Cache transforming operation********************************************************************************************************/
+
+
+
+
+/*****************************************************************************************************************************************************************/
 unsigned int DLL_EXPORT getDuration(){return info.duration;}
 int DLL_EXPORT getStartFrame(){return info.startFrame;}
 int DLL_EXPORT getFrameIncrement(){return info.frameIncrement;}
+

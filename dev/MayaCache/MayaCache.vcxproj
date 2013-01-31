@@ -180,11 +180,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CacheTranscoding.c" />
+    <ClCompile Include="FileUtility.c" />
     <ClCompile Include="MayaNCache.c" />
     <ClCompile Include="XmlWriter.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Includes\Boolean.h" />
+    <ClInclude Include="CacheTranscoding.h" />
+    <ClInclude Include="FileUtility.h" />
     <ClInclude Include="MayaNCache.h" />
     <ClInclude Include="XmlWriter.h" />
   </ItemGroup>

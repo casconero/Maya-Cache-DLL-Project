@@ -6,7 +6,7 @@
 #include <string.h>
 #include <math.h>
 #include <Boolean.h>
-
+#include "CacheTranscoding.h"
 
 // generic swap macro managing "endianess"
 #define GENERICSWAP(type,returnType)				\
@@ -42,6 +42,8 @@
 #define RGBPPCHANNEL 13
 #define OPACITYPPCHANNEL 14
 #define RADIUSPPCHANNEL 15
+
+#define USERDEFINEDCHANNEL 16	// CHANNEL DEFINED BY USER
 
 // channel array format
 #define CHANNELFORMAT char*
@@ -83,13 +85,20 @@
 #define CACHEFORMAT int
 #define ONEFILE 0
 #define ONEFILEPERFRAME 1
-
 #define CACHENUMBEROFCHANNELS 16		// number of defined cache channels
+
+// defining file extension
+#define MAYACACHEEXTENSION ".mc"
+#define XMLEXTENSION ".xml"
+#define MAYACACHEEXTENSIONLENGTH 3
+#define XMLEXTENSIONLENGTH 4
+#define FRAMELENGTH 5
 
 typedef struct channel
 {
 	int channelReference;		// channel name reference
 	BOOL enabled;				// enable or disable channel
+	BOOL defineByUser;			// channel defined by user
 	char *name;					// channel name
 	CHANNELVARIABLETYPE type;	// type of channel DBLA/FVCA
 	int numberOfElements;		// number of elements
@@ -98,7 +107,10 @@ typedef struct channel
 	float *elementsF;			// FVCA elements: float triples' array  
 }Channel;
 
-Channel mayaChannels[CACHENUMBEROFCHANNELS];	// array of channels
+
+// to do. modificare in maniera tale che il numero di canali sia definibile a runtime (devo aggiungere i canali definiti dagli utenti)
+//Channel mayaChannels[CACHENUMBEROFCHANNELS];	// array of channels
+Channel *mayaChannels;
 
 // info data structure
 typedef  struct Info
@@ -115,6 +127,7 @@ typedef  struct Info
 
 	 char **extras;
 	 int nExtras;
+	 int nUserDefinedChannel;
 
 	 CACHEFORMAT cacheFormat;	// [ONEFILE/ONEFILEPERFRAME]
 	 unsigned int fps;			// [frame/sec]
@@ -146,6 +159,24 @@ typedef struct Header
     unsigned int etimSecondPart;
 } Header;
 
+typedef struct SFBlock
+{
+	char format[4];
+	unsigned int blockLength;
+	char blockTag[4];
+	char time[4];
+	unsigned int timeDataLength;
+	unsigned int currentTimeTicks;
+} SFBlock;
+
+
+typedef struct OFXFBlock
+{
+	char format[4];
+	unsigned int blockLength;
+	char blockTag[4];
+} OFXFBlock;
+
 Info info;
 
 static const char *names[]={"id","count","birthTime","position","lifespanPP","finalLifespanPP"
@@ -153,6 +184,8 @@ static const char *names[]={"id","count","birthTime","position","lifespanPP","fi
 							,"mass","age","rgbPP","opacityPP","radiusPP"};
 
 char *mayaCacheFileName;
+
+int dc;
 
 #ifdef DLL
 #define DLL_EXPORT __declspec(dllexport)
@@ -164,9 +197,15 @@ char *mayaCacheFileName;
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+//BOOL DLL_EXPORT MultiFileToSingleFileConverter(char *sourceFile, char * destinationFile);
+//BOOL DLL_EXPORT SingleFileToMultiFileConverter(char *sourceFile, char * destinationFile);
+
 void DLL_EXPORT enableChannel(CHANNELTYPE channelActive, ENABLEDISABLED ea);
 
-void DLL_EXPORT init(char *particleSysName,char *fileName, CACHEFORMAT cacheFormat, int numberOfElements, unsigned int fps, double start, double end,char *extras[], int nExtras);
+void DLL_EXPORT enableUserDefinedChannel(char* channelName, CHANNELVARIABLETYPE channelType, ENABLEDISABLED ea);
+
+void DLL_EXPORT init(char *particleSysName,char *fileName, CACHEFORMAT cacheFormat,int nExtraChannels, int numberOfElements, unsigned int fps, double start, double end,char *extra[], int nE);
 
 void DLL_EXPORT assignChannelValues(CHANNELTYPE channelActive, void *sourceValues);
 
