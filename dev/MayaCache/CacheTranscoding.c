@@ -1,24 +1,7 @@
 #include "CacheTranscoding.h"
 
-
+// utilities funcstions
 BOOL xmlConverter(char *xmlSourceFile, char *xmlDestinationFile,CACHEFORMAT sourceFormat, CACHEFORMAT destinationFormat);
-
-int nextFileSequence(int sequenceIndex);
-
-void retrieveFileName(char * fileNameInput, char ** fileNameOutput, int *sourceFileLength);
-
-void sequenceFile(char **sequence, int frame, int *length);
-
-//void getFileName(char **sourceCacheFileName,const char *sourceFile);
-
-void getSourceCacheFileName(char **sourceCacheFileName,const char sourceFile, const int  frame);
-
-// utilities functions
-BOOL xmlConverter(char *xmlSourceFile, char *xmlDestinationFile,CACHEFORMAT sourceFormat, CACHEFORMAT destinationFormat);
-
-int getSamplingRate(char *xmlSourceFile);
-
-int nextFileSequence(int sequenceIndex);
 
 void retrieveFileName(char * fileNameInput, char ** fileNameOutput, int *sourceFileLength);
 
@@ -26,6 +9,8 @@ void sequenceFile(char **sequence, int frame, int *length);
 
 void getSourceCacheFileName(char **sourceCacheFileName,const char sourceFile, const int  frame);
 
+
+// utilities functions implementation 
 BOOL xmlConverter(char *xmlSourceFile, char *xmlDestinationFile, CACHEFORMAT sourceFormat, CACHEFORMAT destinationFormat)
 {
 	BOOL xmlFileConverted = TRUE;
@@ -113,18 +98,6 @@ BOOL xmlConverter(char *xmlSourceFile, char *xmlDestinationFile, CACHEFORMAT sou
 	return xmlFileConverted;
 };
 
-int nextFileSequence(int sequenceIndex)
-{
-	int sequenceLength=1;
-	while (sequenceIndex>1)
-	{
-		sequenceLength++;
-		sequenceIndex=sequenceIndex/10;
-	}
-
-	return sequenceLength;
-}
-
 void retrieveFileName(char * fileNameInput, char ** fileNameOutput, int *sourceFileLength)
 {
 	char *p, *index;				// char pointer
@@ -157,6 +130,30 @@ void retrieveFileName(char * fileNameInput, char ** fileNameOutput, int *sourceF
 	fileNameOutput[0][dim]='\0';
 }
 
+void getSourceCacheFileName(char **sourceCacheFileName,const char *sourceFile, const int  frame)
+{
+	char *path, *name, *extension,*extensionFileName;
+	int sequenceFileLength;
+
+	extensionFileName=NULL;
+	path=NULL;
+	name=NULL;
+	extension=NULL;
+
+	if (*sourceCacheFileName!=NULL)
+		free(*sourceCacheFileName);
+
+	sequenceFile(&extensionFileName, frame, &sequenceFileLength);
+	getFileInfo(sourceFile, &path, &name, &extension);
+
+	*sourceCacheFileName=(char*)malloc(sizeof(char)*(strlen(path)+strlen(name)+strlen(extensionFileName)+FRAMESUBFIXLENGTH+MAYACACHEEXTENSIONLENGTH+1));
+	memset(*sourceCacheFileName,'\0',sizeof(char));
+	strcat(*sourceCacheFileName,path);
+	strcat(*sourceCacheFileName,name);
+	strcat(*sourceCacheFileName,FRAMESUBFIX);
+	strcat(*sourceCacheFileName,extensionFileName);
+}
+
 void sequenceFile(char **sequence, int frame, int *length)
 {
 	int sequenceFileLength;
@@ -178,66 +175,8 @@ void sequenceFile(char **sequence, int frame, int *length)
 	*length=sequenceFileLength+MAYACACHEEXTENSIONLENGTH;
 }
 
-int getSamplingRate(char *inputFile)
-{
-	int samplingRate,i;
-	FILE *sourceFile;
-	char line[1024];
-	char *p,*q;
-	char *t;
-	
-	// initialization
-	samplingRate=0;
-	i=1;
-	p=NULL;
-	q=NULL;
 
-	if((sourceFile=fopen(inputFile,"rb"))!=NULL)
-	{
-
-		t=fgets(line,sizeof(char)*1024,sourceFile);
-		while(t!=feof)
-		{
-			if((p=strstr(line,"cacheTimePerFrame"))!=NULL)
-				break;
-
-			t=fgets(line,sizeof(char)*1024,sourceFile);
-		}
-	}
-	if(p!=NULL)
-	{
-		// operation to get the sampling rate value
-	}
-	fclose(sourceFile);
-
-	return samplingRate;
-}
-
-void getSourceCacheFileName(char **sourceCacheFileName,const char *sourceFile, const int  frame)
-{
-	char *path, *name, *extension,*extensionFileName;
-	int sequenceFileLength;
-
-	extensionFileName=NULL;
-	path=NULL;
-	name=NULL;
-	extension=NULL;
-
-	if (*sourceCacheFileName!=NULL)
-		free(*sourceCacheFileName);
-
-		sequenceFile(&extensionFileName, frame, &sequenceFileLength);
-		getFileInfo(sourceFile, &path, &name, &extension);
-		*sourceCacheFileName=(char*)malloc(sizeof(char)*(strlen(path)+strlen(name)+strlen(extensionFileName)+FRAMESUBFIXLENGTH+MAYACACHEEXTENSIONLENGTH+1));
-		memset(*sourceCacheFileName,'\0',sizeof(char));
-		strcat(*sourceCacheFileName,path);
-		strcat(*sourceCacheFileName,name);
-		strcat(*sourceCacheFileName,FRAMESUBFIX);
-		strcat(*sourceCacheFileName,extensionFileName);
-}
-
-
-
+// callable method
 BOOL _MultiFileToSingleFileConverter(char *sourceFile, char * destinationFile)
 {
 	FILE *sourceCacheFile, *destinationCacheFile; 
@@ -251,27 +190,32 @@ BOOL _MultiFileToSingleFileConverter(char *sourceFile, char * destinationFile)
 	int sequenceIndex;
 	int dataToRead;
 	char *data;
-	int temp;
 
-	BOOL fileConverted=TRUE;
-	sequenceIndex=0;
-	srStep=0;
-	sourceCacheFileName=NULL;
-	destinationCacheFileName=NULL;
 
+	char *mcpath,*mcName,*mcExt;
+	char mc[4] =".mc";
+	BOOL fileConverted = TRUE;
+	sequenceIndex = 0;
+	srStep = 0;
+	sourceCacheFileName = NULL;
+	destinationCacheFileName = NULL;
+	mcpath = NULL;
+	mcName = NULL;
+	mcExt = NULL;
+
+	
 	// convert the xml file and starting cache convertion
 	if(xmlConverter(sourceFile,destinationFile,ONEFILEPERFRAME,ONEFILE))
 	{
-		// open destination file d:\\temp\\destinationFile.mc
-		//if((destinationCacheFile=fopen(destinationFile,"wb"))==NULL)
-		//getSourceCacheFileName(&destinationCacheFileName,destinationFile,-1);
-		if((destinationCacheFile=fopen("d:\\temp\\destinationFile.mc","wb"))==NULL)	
+		// getting the mc file name and path
+		getFileInfo(destinationFile,&mcpath,&mcName,&mcExt);
+		buildNameFile(mcpath, mcName ,NULL, ".mc",&destinationCacheFileName);
+
+		if((destinationCacheFile = fopen(destinationCacheFileName,"wb"))==NULL)	
 			return FALSE;
 
-		
-		//sampligRate=swapint(getSamplingRate(destinationFile));
-		//sampligRate=MAYATICK/swapint(250);
-		temp=250;
+		// opening the first source cache file 
+		sampligRate = swapint(getSamplingRate(destinationFile));
 		getSourceCacheFileName(&sourceCacheFileName,sourceFile,sequenceIndex);
 
 		memcpy(header.format, FOR4, sizeof(header.format));
@@ -288,18 +232,18 @@ BOOL _MultiFileToSingleFileConverter(char *sourceFile, char * destinationFile)
 		fwrite(&header, sizeof(header), 1, destinationCacheFile);
 
 		// while sourcefiles availlables....
-		while ((sourceCacheFile=fopen(sourceCacheFileName,"rb"))!=NULL)
+		while ((sourceCacheFile = fopen(sourceCacheFileName,"rb"))!=NULL)
 		{
 			fread(&intestazione,sizeof(Header),1,sourceCacheFile);
 			fread(&ofxfBlock,sizeof(OFXFBlock),1,sourceCacheFile);
 			
-			dataToRead=swapint(ofxfBlock.blockLength)-4;
+			dataToRead = swapint(ofxfBlock.blockLength)-4;
 			data=(char*)malloc(sizeof(char)*dataToRead);
 			fread(data,sizeof(char),dataToRead,sourceCacheFile);
-			sfBlock.blockLength=swapint(16+dataToRead);
+			sfBlock.blockLength = swapint(16+dataToRead);
 			memcpy(sfBlock.blockTag, MYCH, sizeof(sfBlock.blockTag));
-			sfBlock.currentTimeTicks=swapint(sequenceIndex*temp);
-			sfBlock.timeDataLength=swapint(4);
+			sfBlock.currentTimeTicks = swapint(sequenceIndex*sampligRate);
+			sfBlock.timeDataLength = swapint(4);
 			memcpy(sfBlock.format, FOR4, sizeof(sfBlock.format));
 			memcpy(sfBlock.time, TIME, sizeof(sfBlock.time));
 			fwrite(&sfBlock,sizeof(SFBlock),1,destinationCacheFile);
@@ -318,20 +262,100 @@ BOOL _MultiFileToSingleFileConverter(char *sourceFile, char * destinationFile)
 				sourceCacheFileName=NULL;
 			}
 
-			// open new file
+			// open the new file 
 			getSourceCacheFileName(&sourceCacheFileName,sourceFile,sequenceIndex);
 			fflush(destinationCacheFile);
 			free(data);
 		}
 
-		if((sourceCacheFile=fopen(sourceFile,"rb"))==NULL)
+		if((sourceCacheFile = fopen(sourceFile,"rb"))==NULL)
 			return FALSE;
 		fclose(destinationCacheFile);
 		fclose(sourceCacheFile);
 	}
 	else
-		fileConverted=FALSE;
+		fileConverted = FALSE;
 
 	return fileConverted;
 };
+
+BOOL _SingleFileToMultiFileConverter(char *sourceFile, char * destinationFile)
+{
+	FILE *sourceCacheFile, *destinationCacheFile; 
+	char *sourceCacheFileName, *destinationCacheFileName;
+	char *mcpath,*mcName,*mcExt;
+	char*buffer;
+	Header header;
+	OFXFBlock block;
+	SFBlock sfBlock;
+	int sequenceIndex;
+	int channelsLength;
+	int mayaTpf;
+
+	// initialization
+	sequenceIndex = 0;
+	channelsLength = 0;
+	mcpath = NULL;
+	mcName = NULL;
+	mcExt = NULL;
+	buffer = NULL;
+	destinationCacheFileName = NULL;
+
+	if(xmlConverter(sourceFile,destinationFile,ONEFILE,ONEFILEPERFRAME))
+	{
+		// getting the source mc file name and path
+		getFileInfo(sourceFile,&mcpath,&mcName,&mcExt);
+		buildNameFile(mcpath, mcName ,NULL, ".mc",&sourceCacheFileName);
+		
+		//open the source mc single file
+		if((sourceCacheFile=fopen(sourceCacheFileName,"rb"))==NULL)	
+			return FALSE;
+
+		mayaTpf = getSamplingRate(sourceFile);
+
+		// reading the header field
+		fread(&header,sizeof(Header),1,sourceCacheFile);
+		
+		// read the channels dimension (first time)
+		fread(&sfBlock,sizeof(SFBlock),1,sourceCacheFile);
+
+		// read one frame at time and save the frame in the new file
+		// test end of file
+		while(!feof(sourceCacheFile))
+		{
+			header.stimSecondPart = swapint(sequenceIndex*mayaTpf);
+			header.etimSecondPart = header.stimSecondPart;
+
+			if (buffer!=NULL)
+				free(buffer);
+
+			//number of byte to read and saving on the output file
+			channelsLength = swapint(sfBlock.blockLength)-16;
+			buffer = (char*)malloc(sizeof(char)*channelsLength);
+			fread(buffer,sizeof(char),channelsLength,sourceCacheFile);
+
+			block.blockLength = swapint(channelsLength+4);
+			memcpy(block.format, FOR4, sizeof(block.format));
+			memcpy(block.blockTag, MYCH, sizeof(block.blockTag));
+
+			// saving file
+			getSourceCacheFileName(&destinationCacheFileName,destinationFile,sequenceIndex);
+			if((destinationCacheFile = fopen(destinationCacheFileName,"wb"))==NULL)	
+				return FALSE;
+
+			fwrite(&header, sizeof(header), 1, destinationCacheFile);
+			fwrite(&block, sizeof(OFXFBlock), 1, destinationCacheFile);
+			fwrite(buffer, sizeof(char), channelsLength, destinationCacheFile);
+			fflush(destinationCacheFile);
+			fclose(destinationCacheFile);
+
+			sequenceIndex++;
+
+			// read the channels dimension for the sequenceIndex step
+			fread(&sfBlock,sizeof(SFBlock),1,sourceCacheFile);
+		}
+	}
+
+	return TRUE;
+}
 

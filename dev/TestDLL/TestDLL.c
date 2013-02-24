@@ -135,5 +135,6 @@ int main()
 	closeMayaNCacheFile();
 	printf("Simulation terminated \nPress any key to exit");
 	getchar(); 
+	
 	return 0;
 }

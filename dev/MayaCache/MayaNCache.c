@@ -144,8 +144,8 @@
 	fileName2=NULL;
 	fileExtension=NULL;
 	
-//	_SingleFileToMultiFileConverter("d:\\temp\\2particlesSINGLEFILE.xml", "d:\\temp\\esempio.xml");
-	_MultiFileToSingleFileConverter("d:\\temp\\multiFILE.xml", "d:\\temp\\destinationFile.xml");
+	_SingleFileToMultiFileConverter("d:\\temp\\2particlesSINGLEFILE.xml", "d:\\cost\\esempio.xml");
+//	_MultiFileToSingleFileConverter("d:\\temp\\multiFILE.xml", "d:\\temp\\destinationFile.xml");
 
 	info.extras=(char**)malloc(nE*sizeof(char*));
 	info.nExtras=nE;

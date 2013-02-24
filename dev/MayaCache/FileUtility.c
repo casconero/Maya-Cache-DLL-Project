@@ -1,6 +1,6 @@
 #include "FileUtility.h"
 
-void getFileInfo(char *completeFilePath, char **filePath, char ** fileName, char **fileExtension)
+void getFileInfo(const char *completeFilePath, char **filePath, char ** fileName, char **fileExtension)
 {
 	char *extensionBookMark;
 	char *fileBookMark;
@@ -29,12 +29,12 @@ void getFileInfo(char *completeFilePath, char **filePath, char ** fileName, char
 	dim=1;
 
 	//searching last "." (for extension)
-	extensionBookMark=strrchr(completeFilePath,'.');
+	extensionBookMark = strrchr(completeFilePath,'.');
 
 	// searching last "\" (for name file)
-	fileBookMark=strrchr(completeFilePath,'\\');
+	fileBookMark = strrchr(completeFilePath,'\\');
 
-	pTemp=completeFilePath;
+	pTemp = completeFilePath;
 	while(pTemp!=fileBookMark)
 	{
 		dim++;
@@ -72,3 +72,81 @@ void getFileInfo(char *completeFilePath, char **filePath, char ** fileName, char
 	memmove(*fileExtension,extensionBookMark,sizeof(char)*dim);
 	fileExtension[0][dim]='\0';
 }
+
+
+
+
+int nextFileSequence(int sequenceIndex)
+{
+	int sequenceLength=1;
+	while (sequenceIndex>1)
+	{
+		sequenceLength++;
+		sequenceIndex=sequenceIndex/10;
+	}
+
+	return sequenceLength;
+}
+
+
+
+
+
+int getSamplingRate(char *inputFile)
+{
+	int samplingRate;
+	FILE *sourceFile;
+	char line[1024];
+	char *p,*q;
+	char *t;
+
+	// initialization
+	samplingRate=0;
+	p=NULL;
+	q=NULL;
+
+	if((sourceFile=fopen(inputFile,"rb"))!=NULL)
+	{
+
+		t=fgets(line,sizeof(char)*1024,sourceFile);
+		while(t!=NULL)
+		{
+			if((p=strstr(line,"cacheTimePerFrame"))!=NULL)
+				break;
+			t=fgets(line,sizeof(char)*1024,sourceFile);
+		}
+	}
+
+	if(p!=NULL)
+	{
+		// operation to get the sampling rate value
+		p=strchr(p,'"');
+		q=strrchr(p,'"');
+
+		q--;
+		while (q!=p)
+		{
+			samplingRate=atoi(q);
+			q--;
+		}
+	}
+	fclose(sourceFile);
+
+	return samplingRate;
+}
+
+void buildNameFile(const char *path, const char*name ,const char * subfix, const char* extensionFileName,char**completeFileName)
+{
+	int dim=0;
+	if(subfix!=NULL)
+		dim=strlen(subfix);
+
+	*completeFileName=(char*)malloc(sizeof(char)*(strlen(path)+strlen(name)+dim+strlen(extensionFileName)+1));
+	memset(*completeFileName,'\0',sizeof(char));
+	strcat(*completeFileName,path);
+	strcat(*completeFileName,name);
+	if(subfix!=NULL)
+		strcat(*completeFileName,subfix);
+	strcat(*completeFileName,extensionFileName);
+}
+
