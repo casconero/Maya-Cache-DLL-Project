@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <MayaNCache.h>
+#include <MayaCache.h>
 
-//example: how to use the MayaNCache library
+//example: how to use the MayaCache library
 int main()
 {
 	// 2 particles moving in a circular path
@@ -17,7 +17,7 @@ int main()
 	double count,start,end;
 	unsigned long numberOfElements=2;
 	float r1,r2,angle1,angle2,delta;
-	int j,nExtras;
+	int j,nExtras,cache1,cache2;
 	unsigned int fps;
 	CACHEFORMAT cachingMethod;
 	char *extras[4];	// extra parameters list
@@ -41,26 +41,34 @@ int main()
 
 
 	// Initializing channels options, simulation parameters and saving method type
-	cachingMethod=ONEFILEPERFRAME; //ONEFILE;	//
+	//cachingMethod=ONEFILE;//ONEFILEPERFRAME; //ONEFILE;	//
 
-	init("nParticleShape1","d://temp//multiFILE",cachingMethod,0,numberOfElements,fps,start,end,extras,nExtras);
+	cache1=init("nParticleShape1","d://temp//experimental//ONEFILE",ONEFILE,0,numberOfElements,fps,start,end,extras,nExtras);
+	cache2=init("nParticleShape2","d://temp//experimental//TestSenzaVelocity",ONEFILEPERFRAME,0,numberOfElements,fps,start,end,extras,nExtras);
 
-	enableChannel(IDCHANNEL, ENABLED);
-	enableChannel(COUNTCHANNEL, ENABLED);
-	enableChannel(BIRTHTIMECHANNEL, ENABLED);
-	enableChannel(POSITIONCHANNEL, ENABLED);
-	enableChannel(LIFESPANPPCHANNEL, ENABLED);
-	enableChannel(FINALLIFESPANPPCHANNEL, ENABLED);
-	enableChannel(VELOCITYCHANNEL, ENABLED);
-	enableChannel(RGBPPCHANNEL, ENABLED);
+	enableChannel(IDCHANNEL, ENABLED,cache1);
+	enableChannel(COUNTCHANNEL, ENABLED,cache1);
+	enableChannel(BIRTHTIMECHANNEL, ENABLED,cache1);
+	enableChannel(POSITIONCHANNEL, ENABLED,cache1);
+	enableChannel(LIFESPANPPCHANNEL, ENABLED,cache1);
+	enableChannel(FINALLIFESPANPPCHANNEL, ENABLED,cache1);
+	enableChannel(VELOCITYCHANNEL, ENABLED,cache1);
+	enableChannel(RGBPPCHANNEL, ENABLED,cache1);
 
+	enableChannel(IDCHANNEL, ENABLED,cache2);
+	enableChannel(COUNTCHANNEL, ENABLED,cache2);
+	enableChannel(BIRTHTIMECHANNEL, ENABLED,cache2);
+	enableChannel(POSITIONCHANNEL, ENABLED,cache2);
+	enableChannel(LIFESPANPPCHANNEL, ENABLED,cache2);
+	enableChannel(FINALLIFESPANPPCHANNEL, ENABLED,cache2);
+	enableChannel(VELOCITYCHANNEL, ENABLED,cache2);
+	enableChannel(RGBPPCHANNEL, ENABLED,cache2);
 
-	enableUserDefinedChannel("Pippo", DBLA, ENABLED);
 	// simulation data
-	delta=(float)((360.0/getDuration()));
+	delta=(float)((360.0/getDuration(cache1)));
 
-	// for the entire simulation's length
-	for(j=getStartFrame();j<=getStartFrame()+getDuration();j+=getFrameIncrement())
+	// for the entire simulation's length (same values for cache1 and cache2
+	for(j=getStartFrame(cache1);j<=getStartFrame(cache1)+getDuration(cache1);j+=getFrameIncrement(cache1))
 	{
 		color=(float*)malloc(3 * numberOfElements * sizeof(float));
 		position=(float*)malloc(3 * numberOfElements * sizeof(float));
@@ -104,18 +112,30 @@ int main()
 		// i don't need to compute the birthtime because the particles are already presents at time 0
 		// and the "calloc" fill the memory area with zeros. Same appends to lifespanPP and finalLifeSpanPP
 
-		assignChannelValues(COUNTCHANNEL, &count);
-		assignChannelValues(IDCHANNEL,id);
-		assignChannelValues(POSITIONCHANNEL,position);
-		assignChannelValues(VELOCITYCHANNEL,velocity);
-		assignChannelValues(BIRTHTIMECHANNEL,birthtime);
-		assignChannelValues(LIFESPANPPCHANNEL,lifespanPP);
-		assignChannelValues(FINALLIFESPANPPCHANNEL,finalLifespanPP);
-		assignChannelValues(RGBPPCHANNEL,color);
+		//cache1
+		assignChannelValues(COUNTCHANNEL, &count,cache1);
+		assignChannelValues(IDCHANNEL,id,cache1);
+		assignChannelValues(POSITIONCHANNEL,position,cache1);
+		assignChannelValues(VELOCITYCHANNEL,velocity,cache1);
+		assignChannelValues(BIRTHTIMECHANNEL,birthtime,cache1);
+		assignChannelValues(LIFESPANPPCHANNEL,lifespanPP,cache1);
+		assignChannelValues(FINALLIFESPANPPCHANNEL,finalLifespanPP,cache1);
+		assignChannelValues(RGBPPCHANNEL,color,cache1);
+
+		//cache2
+		assignChannelValues(COUNTCHANNEL, &count,cache2);
+		assignChannelValues(IDCHANNEL,id,cache2);
+		assignChannelValues(POSITIONCHANNEL,position,cache2);
+		assignChannelValues(VELOCITYCHANNEL,velocity,cache2);
+		assignChannelValues(BIRTHTIMECHANNEL,birthtime,cache2);
+		assignChannelValues(LIFESPANPPCHANNEL,lifespanPP,cache2);
+		assignChannelValues(FINALLIFESPANPPCHANNEL,finalLifespanPP,cache2);
+		assignChannelValues(RGBPPCHANNEL,color,cache2);
 
 		// chaching simulation
-		mayaCache();
+		mayaCache(cache2);
 
+		mayaCache(cache1);
 		// free resources
 		if(id!=NULL)
 			free(id);
@@ -132,7 +152,8 @@ int main()
 	}
 
 	// close the maya ncache file and exit
-	closeMayaNCacheFile();
+	closeMayaCacheFile(cache1);
+	closeMayaCacheFile(cache2);
 	printf("Simulation terminated \nPress any key to exit");
 	getchar(); 
 	

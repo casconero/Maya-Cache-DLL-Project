@@ -2,14 +2,14 @@
 #define XMLWRITER_H_INCLUDED
 #include <stdlib.h>
 #include <stdio.h>
-#include "MayaNCache.h"
+#include <MayaCache.h>
 
-BOOL isXmlFinalized;
+BOOL *isXmlFinalized;
 
-void printXml(Channel *channel);
+void printXml(Channel *channel, int cacheId);
 
-void writeXmlChannel(Channel *channel);
+void writeXmlChannel(Channel *channel, int cacheId);
 
-void closeXmlFile();
+void closeXmlFile(int cacheId);
 
 #endif

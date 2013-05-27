@@ -1,7 +1,10 @@
 #ifndef _FILEUTILITY_H_INCLUDED
 #define _FILEUTILITY_H_INCLUDED
 
-#include "Boolean.h"
+#define BOOL int
+#define TRUE 1
+#define FALSE 0
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
