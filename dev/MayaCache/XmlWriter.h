@@ -2,7 +2,7 @@
 #define XMLWRITER_H_INCLUDED
 #include <stdlib.h>
 #include <stdio.h>
-#include <MayaCache.h>
+#include "MayaCache.h"
 
 BOOL *isXmlFinalized;
 

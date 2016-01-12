@@ -138,7 +138,6 @@ typedef  struct Info
 	int end;					// [tick]
 	unsigned int mayaTPF;		// [seconds]
 	int numberOfChannels;		// [int]
-	int numberOfElements;		// [int]
 
 	int startFrame;
 	int currentFrame;
@@ -212,11 +211,11 @@ void DLL_EXPORT enableChannel(CHANNELTYPE channelActive, ENABLEDISABLED ea, int 
 
 void DLL_EXPORT enableUserDefinedChannel(char* channelName, CHANNELVARIABLETYPE channelType, ENABLEDISABLED ea);
 
-int DLL_EXPORT init(char *particleSysName,char *fileName, CACHEFORMAT cacheFormat,int nExtraChannels, int numberOfElements, unsigned int fps, double start, double end,char *extra[], int nE);
+int DLL_EXPORT init(char *particleSysName,char *fileName, CACHEFORMAT cacheFormat,int nExtraChannels, unsigned int fps, double start, double end,char *extra[], int nE);
 
 void DLL_EXPORT assignChannelValues(CHANNELTYPE channelActive, void *sourceValues,int cacheId);
 
-void DLL_EXPORT mayaCache(int cacheId);
+void DLL_EXPORT mayaCache(int cacheId, int numberOfElements);
 
 void DLL_EXPORT closeMayaCacheFile(int cacheId);
 

@@ -1,8 +1,8 @@
 #ifndef _CACHETRANSCODING_H_INCLUDED
 #define _CACHETRANSCODING_H_INCLUDED
 
-#include <MayaCache.h>
-#include <FileUtility.h>
+#include "MayaCache.h"
+#include "FileUtility.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
